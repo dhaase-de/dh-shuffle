@@ -43,15 +43,16 @@ def main():
 
     # parse
     parser = argparse.ArgumentParser(description="Wrapper for shuffle number computation.")
-    parser.add_argument("-x", "--executable", default="c/main", type=str, help="executable to be used for the computation")
-    parser.add_argument("-j", "--jobs", dest="jobs", default=1, type=int, help="number of parallel processes to spawn")
+    parser.add_argument("-x", "--executable", dest="executable", type=str, default="c/main", help="executable to be used for the computation")
+    parser.add_argument("-j", "--jobs", dest="jobs", type=int, default=1, help="number of parallel processes to spawn")
+    parser.add_argument("-o", "--outfile", dest="outfile", type=str, required=True, help="output filename")
     parser.add_argument(dest="range", nargs="*", type=int, help="range of numbers for which the shuffle number should be computed, can be specified via zero (default range), one (start=1, end given), or two (start and end given) integers")
     kwargs = vars(parser.parse_args())
 
     # range of numbers for which the shuffle number should be computed
     range_ = kwargs["range"]
     if len(range_) == 0:
-        (start, end) = (1, 100000)
+        (start, end) = (1, 10000)
     elif len(range_) == 1:
         (start, end) = (1, int(range_[0]))
     elif len(range_) == 2:
@@ -67,20 +68,23 @@ def main():
     if not os.path.exists(executable):
         raise FileNotFoundError("Executable not found: '{}'".format(executable))
 
+    # output filename
+    outFilename = kwargs["outfile"]
+
     ##
     ## run
     ##
 
     # temporary output filenames
-    outFilenamePattern = "/tmp/dh-shuffle-out.txt.{}"
-    outFilenames = tuple(outFilenamePattern.format(nProcess + 1) for nProcess in range(processCount))
+    tmpFilenamePattern = "/tmp/dh-shuffle-out.txt.{}"
+    tmpFilenames = tuple(tmpFilenamePattern.format(nProcess + 1) for nProcess in range(processCount))
 
     # start sub-processes
     processes = []
     for nProcess in range(processCount):
         processes.append(subprocess.Popen(
             (executable, str(start + nProcess), str(end), str(processCount)),
-            stdout=open(outFilenames[nProcess], "w"))
+            stdout=open(tmpFilenames[nProcess], "w"))
         )
 
     # monitor results until completion
@@ -91,21 +95,29 @@ def main():
         done = True
         for (nProcess, process) in enumerate(processes):
             done = done and (process.poll() is not None)
-            finishedCount += wcl(outFilenames[nProcess])
+            finishedCount += wcl(tmpFilenames[nProcess])
 
         pbar.update(finishedCount - lastFinishedCount)
         lastFinishedCount = finishedCount
-
         if done:
             break
-
         time.sleep(1.0)
 
     ##
     ## finalize
     ##
 
-    #x
+    print("Merging results into file '{}'...".format(outFilename))
+    fs = tuple(open(tmpFilename, "r") for tmpFilename in tmpFilenames)
+    with open(outFilename, "w") as o:
+        while True:
+            lines = tuple(f.readline() for f in fs)
+            lines = tuple(line for line in lines if len(line) > 0)
+            if len(lines) > 0:
+                for line in lines:
+                    o.write(line)
+            else:
+                break
 
 
 if __name__ == "__main__":
