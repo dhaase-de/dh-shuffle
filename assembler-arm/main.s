@@ -8,10 +8,6 @@ main:
    # save lr on stack 
    str lr, [sp, #-8]!
  
-   # print program info
-   ldr r0, p_svnid
-   bl printf
-
    # loop variable (argument for each shuffle call)
    ldr r0, N_start
    sub r0, r0, #1
@@ -97,7 +93,3 @@ N_end:
 format: .asciz "%d %d \n"
 p_format: .word format
 
-# SVN version string
-.balign 4
-svnid: .asciz "# $Id: main.s 237 2013-07-11 02:04:13Z dh $\n"
-p_svnid: .word svnid
