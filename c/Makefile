@@ -1,4 +1,5 @@
-CC      = gcc
+#CC      = gcc
+CC      = clang
 CFLAGS  = -Wall -Wextra -pedantic -ansi -Wfatal-errors -O3
 IFLAGS  = 
 LDFLAGS = 
