@@ -1,3 +1,7 @@
+# dev
+.idea/
+
+# compiled programs
 computation/assembler-arm/main
 computation/assembler-arm/main.o
 computation/c/main
