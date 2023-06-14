@@ -1,3 +1,3 @@
-assembler-arm/main
-assembler-arm/main.o
-c/main
+computation/assembler-arm/main
+computation/assembler-arm/main.o
+computation/c/main
