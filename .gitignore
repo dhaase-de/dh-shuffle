@@ -1,6 +1,9 @@
 # dev
 .idea/
 
+# big data files
+data/10M.txt
+
 # compiled programs
 computation/assembler-arm/main
 computation/assembler-arm/main.o
